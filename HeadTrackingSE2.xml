@@ -5,19 +5,19 @@
     <Id>A8A0D5CC-820D-432D-996C-B9E5AECDD5AE</Id>
 
     <!-- GitHub repository ID -->
-    <RepoId>kickformoney/SE2-Head-Tracking</RepoId>
+    <RepoId>kickformoney/HeadTrackingSE2</RepoId>
 
     <!-- The name of your plugin that will appear in the plugin list -->
-    <FriendlyName>Head Tracking</FriendlyName>
+    <FriendlyName>Head Tracking for SE2</FriendlyName>
 
     <!-- The author name that you want to appear in the plugin list -->
     <Author>kickformoney</Author>
 
     <!-- Optional tooltip for the plugin in the plugin list -->
-    <Tooltip>Adds head tracking for OpenTrack and TrackIR using the FreeTrack protocol</Tooltip>
+    <Tooltip>Adds head tracking using the FreeTrack protocol</Tooltip>
 
     <!-- Optional plugin description. If omitted, this will be the same as the Tooltip. 1000 characters max. -->
-    <Description></Description>
+    <Description>Adds head tracking using the FreeTrack protocol.  If the head tracking isn't working, be sure you have your head tracking application set up to use the "FreeTrack 2.0 Enhanced" protocol</Description>
 
     <!-- Only source code in the Directory entries listed in SourceDirectories is compiled. Exclude any test projects or similar. -->
     <SourceDirectories>
@@ -45,7 +45,7 @@
     -->
 
     <!-- The current plugin version's commit hash -->
-    <Commit>a664d68b902bb089c90aec42001912b3cde0c84a</Commit>
+    <Commit>f8204bc76e60c62665a64306314c6c21139c542d</Commit>
 
     <!-- Optional list of alternate versions of the plugin, use it for test or custom builds
     <AlternateVersions>
