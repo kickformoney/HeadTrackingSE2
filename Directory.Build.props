@@ -1,0 +1,18 @@
+<Project>
+  <PropertyGroup>
+    <!-- Folder containing SpaceEngineers2.exe -->
+    <Game2>$(registry:HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Steam App 1133870@InstallLocation)\Game2</Game2>
+
+    <!-- Folder containing Pulsar's data -->
+    <Pulsar Condition="$([MSBuild]::IsOSPlatform('Windows'))">$(APPDATA)\Pulsar</Pulsar>
+    <Pulsar Condition="$([MSBuild]::IsOSPlatform('Linux'))">$(HOME)/.config/Pulsar</Pulsar>
+      
+    <!-- Local plugin DLL deployment folder -->
+    <LocalDeploymentDir>$(Pulsar)/Modern/Local</LocalDeploymentDir>
+      
+    <!-- Plugin version -->
+    <Version>1.0.0</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+  </PropertyGroup>
+</Project>
