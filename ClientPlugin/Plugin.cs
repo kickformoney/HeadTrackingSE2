@@ -1,16 +1,16 @@
-using System;
-using System.Reflection;
 using ClientPlugin.Settings;
 using ClientPlugin.Tools;
 using HarmonyLib;
 using Keen.Game2.Game.Plugins;
 using Keen.VRage.Library.Diagnostics;
+using System;
+using System.Reflection;
 
 namespace ClientPlugin;
 
 public class Plugin : IPlugin
 {
-    public const string Name = "ClientPluginTemplate";
+    public const string Name = "Se2HeadTracking";
     public static Plugin Instance;
 
     // The data directory will be provided by a proper SDK in the future.
@@ -25,7 +25,7 @@ public class Plugin : IPlugin
     {
         Instance = this;
 
-        // Force-load Config.Current now that DataDir is available.
+        // Force-load Config.Current now that DataDir is available
         _ = Config.Current;
 
         Log.Default.WriteLine($"[{Name}] Loaded plugin.");
@@ -35,6 +35,8 @@ public class Plugin : IPlugin
         var harmony = new Harmony(Name);
         harmony.PatchAll(Assembly.GetExecutingAssembly());
         Log.Default.WriteLine($"[{Name}] Applied patches");
+
+        //OpenTrackReader.DiagnoseMapNames();
     }
 
     // Invoked by Pulsar via reflection when the user clicks the plugin's config button.

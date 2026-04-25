@@ -2,27 +2,22 @@
 <PluginData xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="GitHubPlugin">
 
     <!-- The ID of your plugin, never change this -->
-    <Id>58E57089-6B0A-4456-A788-357EF93E2673</Id>
+    <Id>A8A0D5CC-820D-432D-996C-B9E5AECDD5AE</Id>
 
     <!-- GitHub repository ID -->
-    <RepoId>todo-github-user/project-name</RepoId>
+    <RepoId>kickformoney/SE2-Head-Tracking</RepoId>
 
     <!-- The name of your plugin that will appear in the plugin list -->
-    <FriendlyName>TODO ClientPluginTemplate</FriendlyName>
+    <FriendlyName>Head Tracking</FriendlyName>
 
     <!-- The author name that you want to appear in the plugin list -->
-    <Author>TODO Author Name</Author>
+    <Author>kickformoney</Author>
 
     <!-- Optional tooltip for the plugin in the plugin list -->
-    <Tooltip>TODO Short description</Tooltip>
+    <Tooltip>Adds head tracking for OpenTrack and TrackIR using the FreeTrack protocol</Tooltip>
 
     <!-- Optional plugin description. If omitted, this will be the same as the Tooltip. 1000 characters max. -->
-    <Description>TODO Long description, multiple lines.
-
-        This text is shown on the plugin details panel in a scrollable text box.
-
-        You can use links here, players can click on them. For example, add a Discord invite.
-    </Description>
+    <Description></Description>
 
     <!-- Only source code in the Directory entries listed in SourceDirectories is compiled. Exclude any test projects or similar. -->
     <SourceDirectories>
@@ -50,7 +45,7 @@
     -->
 
     <!-- The current plugin version's commit hash -->
-    <Commit>TODO Git commit hash</Commit>
+    <Commit>a664d68b902bb089c90aec42001912b3cde0c84a</Commit>
 
     <!-- Optional list of alternate versions of the plugin, use it for test or custom builds
     <AlternateVersions>

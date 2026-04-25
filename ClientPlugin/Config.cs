@@ -1,142 +1,102 @@
+using ClientPlugin.Settings.Elements;
+using ClientPlugin.Settings.Tools;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Xml.Serialization;
-using Avalonia.Media;
-using ClientPlugin.Settings.Elements;
-using ClientPlugin.Settings.Tools;
 
 namespace ClientPlugin;
 
-public enum ExampleEnum
-{
-    FirstAlpha,
-    SecondBeta,
-    ThirdGamma,
-    AndTheDelta,
-    Epsilon,
-}
+//public enum ProtocolEnum
+//{
+//    FaceTrackNoIR,
+//    FreeTrack,
+//}
 
 public class Config : INotifyPropertyChanged
 {
-    #region Options
+    #region Fields
 
-    private bool enabled = true;
-    private bool toggle = true;
-    private int integer = 2;
-    private float number = 0.1f;
-    private string text = "Default Text";
-    private ExampleEnum dropdown = ExampleEnum.FirstAlpha;
-    private uint color = 0xFF00FFFFu;           // ARGB packed, cyan
-    private uint colorWithAlpha = 0x80CC9933u;  // ARGB packed, 50% alpha orange-ish
-    private Binding keybind = new Binding();
-
-    #endregion
-
-    #region User interface
+    public static readonly Config Default = new Config();
+    public static Config Current = ConfigStorage.Load();
 
     [XmlIgnore]
-    public readonly string Title = "Config Demo";
+    public readonly string Title = "Head Tracking Configuration";
 
-    [Separator("Some settings")]
+    private bool enabled = true;
+    private float multiplier = 25f;
+    private float sensitivityStep = 1f;
 
-    [Checkbox(description: "Enable or disable the plugin's features")]
+    //private ProtocolEnum protocolSelection = ProtocolEnum.FreeTrack;
+
+    private Binding toggleKey = new Binding();
+    private Binding increaseSensitivity = new Binding();
+    private Binding decreaseSensitivity = new Binding();
+
+    #endregion Fields
+
+    #region Events
+
+    public event PropertyChangedEventHandler PropertyChanged;
+
+    #endregion Events
+
+    #region Properties
+
+    [Separator("Head Tracking Settings")]
+    [Checkbox(description: "Enable/Disable Plugin")]
     public bool Enabled
     {
         get => enabled;
         set => SetField(ref enabled, value);
     }
 
-    [Checkbox(description: "Checkbox Tooltip")]
-    public bool Toggle
+    //[Dropdown(description: "Tracking Protocol")]
+    //public ProtocolEnum ProtocolSelection
+    //{
+    //    get => protocolSelection;
+    //    set => SetField(ref protocolSelection, value);
+    //}
+
+    [Slider(0f, 100f, 1f, SliderAttribute.SliderType.Integer, description: "Tracking Sensitivity")]
+    public float Multiplier
     {
-        get => toggle;
-        set => SetField(ref toggle, value);
+        get => multiplier;
+        set => SetField(ref multiplier, value);
     }
 
-    [Slider(-1f, 10f, 1f, SliderAttribute.SliderType.Integer, description: "Integer Slider Tooltip")]
-    public int Integer
+    [Separator("Keybinds")]
+    [Keybind(description: "Toggle Tracking")]
+    public Binding Toggle
     {
-        get => integer;
-        set => SetField(ref integer, value);
+        get => toggleKey;
+        set => SetField(ref toggleKey, value);
     }
 
-    [Slider(-5f, 4.5f, 0.5f, SliderAttribute.SliderType.Float, description: "Float Slider Tooltip")]
-    public float Number
+    [Slider(0.25f, 5f, 0.25f, SliderAttribute.SliderType.Float, description: "Sensitivity Adjustment Increment")]
+    public float SensitivityStep
     {
-        get => number;
-        set => SetField(ref number, value);
+        get => sensitivityStep;
+        set => SetField(ref sensitivityStep, value);
     }
 
-    [Textbox(description: "Textbox Tooltip")]
-    public string Text
+    [Keybind(description: "Increase Tracking Sensitivity")]
+    public Binding IncreaseSensitivity
     {
-        get => text;
-        set => SetField(ref text, value);
+        get => increaseSensitivity;
+        set => SetField(ref increaseSensitivity, value);
     }
 
-    [Dropdown(description: "Dropdown Tooltip")]
-    public ExampleEnum Dropdown
+    [Keybind(description: "Decrease Tracking Sensitivity")]
+    public Binding DecreaseSensitivity
     {
-        get => dropdown;
-        set => SetField(ref dropdown, value);
+        get => decreaseSensitivity;
+        set => SetField(ref decreaseSensitivity, value);
     }
 
-    [Separator("More settings")]
+    #endregion Properties
 
-    [XmlIgnore]
-    [Color(description: "RGB color")]
-    public Color Color
-    {
-        get => Avalonia.Media.Color.FromUInt32(color | 0xFF000000u);
-        set => SetField(ref color, value.ToUInt32() | 0xFF000000u);
-    }
-
-    [XmlIgnore]
-    [Color(hasAlpha: true, description: "RGBA color")]
-    public Color ColorWithAlpha
-    {
-        get => Avalonia.Media.Color.FromUInt32(colorWithAlpha);
-        set => SetField(ref colorWithAlpha, value.ToUInt32());
-    }
-
-    [Keybind(description: "Keybind Tooltip - Unbind by right clicking the button")]
-    public Binding Keybind
-    {
-        get => keybind;
-        set => SetField(ref keybind, value);
-    }
-
-    [Button(description: "Button Tooltip")]
-    public void Button()
-    {
-        // TODO: Put your custom button action here.
-    }
-
-    #endregion
-
-    #region Serialization-only properties
-
-    public uint ColorPacked
-    {
-        get => color;
-        set => color = value;
-    }
-
-    public uint ColorWithAlphaPacked
-    {
-        get => colorWithAlpha;
-        set => colorWithAlpha = value;
-    }
-
-    #endregion
-
-    #region Property change notification boilerplate
-
-    public static readonly Config Default = new Config();
-    public static Config Current = ConfigStorage.Load();
-
-    public event PropertyChangedEventHandler PropertyChanged;
+    #region Methods
 
     protected virtual void OnPropertyChanged(string propertyName)
     {
@@ -151,5 +111,5 @@ public class Config : INotifyPropertyChanged
         return true;
     }
 
-    #endregion
+    #endregion Methods
 }
