@@ -1,5 +1,5 @@
 # Space Engineers 2 Head Tracking Plugin
-This plugin enables head tracking in Space Engineers 2 using the FreeTrack protocol.  Currently limited to cockpits/control seats
+This plugin enables head tracking in Space Engineers 2 using the FreeTrack protocol.  Currently limited to cockpits/seats
 
 ## Prerequisites
 - [OpenTrack](https://github.com/opentrack/opentrack) or another app that uses the FreeTrack protocol
@@ -8,7 +8,7 @@ This plugin enables head tracking in Space Engineers 2 using the FreeTrack proto
 
 ## Configuration
 Configuration is handled in the Plugins section of the SE2 application:
-<img width="1565" height="1097" alt="image" src="https://github.com/user-attachments/assets/06e027d8-bc76-4ed2-8599-8d4083a7a3bb" />
+<img width="1585" height="1122" alt="image" src="https://github.com/user-attachments/assets/72863763-e9cd-47ff-9b04-1db6514f0a39" />
 
 #### Multiplier
 Use this to adjust the sensitivity of the head tracking
