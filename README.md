@@ -10,11 +10,11 @@ This plugin enables head tracking in Space Engineers 2 using the FreeTrack proto
 Configuration is handled in the Plugins section of the SE2 application:
 <img width="1585" height="1122" alt="image" src="https://github.com/user-attachments/assets/72863763-e9cd-47ff-9b04-1db6514f0a39" />
 
-#### Multiplier
+#### Tracking Sensitivity
 Use this to adjust the sensitivity of the head tracking
 
 #### Sensitivity Step
-This is used in coordination with the Increase and Decrease sensitivity keys
+This is used in coordination with the Increase and Decrease sensitivity keys, increasing or decreasing sensitivity by this amount each time the button is pressed
 
 #### Increase/Decrease Sensitivity
 Press either key to adjust the sensitivity multiplier by the sensitivity step value
