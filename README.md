@@ -1,5 +1,5 @@
 # Space Engineers 2 Head Tracking Plugin
-This plugin utilizes the FreeTrack protocol to enable head tracking in Space Engineers 2.  Currently limited to cockpits
+This plugin enables head tracking in Space Engineers 2 using the FreeTrack protocol.  Currently limited to cockpits/control seats
 
 ## Prerequisites
 - [OpenTrack](https://github.com/opentrack/opentrack) or another app that uses the FreeTrack protocol
@@ -18,3 +18,12 @@ This is used in coordination with the Increase and Decrease sensitivity keys
 
 #### Increase/Decrease Sensitivity
 Press either key to adjust the sensitivity multiplier by the sensitivity step value
+
+## Troubleshooting
+If the tracking is not working in game, verify the following:
+- Head tracking is enabled and working properly in your head tracking application
+- You are executing the game with plugins enabled using Pulsar
+- The head tracking plugin is enabled and the Tracking Sensitivity is above 0.00
+- The log file in `%AppData%\SpaceEngineers2\Temp\Logs` contains the line `Found shared memory map: 'FT_SharedMem'`
+
+If you have exhausted all other options, reach out to me on Discord to submit a bug report

@@ -3,7 +3,6 @@ using HarmonyLib;
 using Keen.Game2.Client.GameSystems.CameraSystems.Modes;
 using Keen.VRage.Library.Diagnostics;
 using Keen.VRage.Library.Mathematics;
-using System;
 
 namespace ClientPlugin.Patches;
 
@@ -31,7 +30,8 @@ internal class HeadTrackingPatch
     #region Fields
 
     private static bool logToFile = false;
-    private static int _logCounter = 0;
+    private static int logCounter = 0;
+    private static int noDataLogCounter = 0;
 
     #endregion Fields
 
@@ -41,13 +41,18 @@ internal class HeadTrackingPatch
 
     private static void Prefix(ref FirstPersonCameraWithInputComponent.RotationData rotationData)
     {
-        bool enableLogging = logToFile && (_logCounter++ % 180) == 0;
+        bool enableLogging = logToFile && (logCounter++ % 180) == 0; // 180 frames - approximately 3 seconds
 
         if (enableLogging) Log.Default.WriteLine($"[{Plugin.Name}] Patch firing. Current RotationData.Rotation: {rotationData.Rotation}");
 
         if (!OpenTrackReader.TryGetPose(out float yaw, out float pitch))
         {
-            if (enableLogging) Log.Default.WriteLine($"[{Plugin.Name}] OpenTrack: no data.");
+            int frames = enableLogging ? 180 : 18000;
+
+            if (noDataLogCounter++ % frames == 0) // 18000 frames - approximately five minutes
+            {
+                Log.Default.WriteLine($"[{Plugin.Name}] OpenTrack: no data.");
+            }
             return;
         }
 

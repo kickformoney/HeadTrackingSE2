@@ -19,7 +19,7 @@
     </PropertyGroup>
 
     <PropertyGroup>
-        <AssemblyName>Se2HeadTracking</AssemblyName>
+        <AssemblyName>HeadTrackingSE2</AssemblyName>
     </PropertyGroup>
 
     <Target Name="DeployPlugin" AfterTargets="Build">

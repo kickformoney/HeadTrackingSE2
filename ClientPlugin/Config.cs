@@ -24,7 +24,7 @@ public class Config : INotifyPropertyChanged
     public readonly string Title = "Head Tracking Configuration";
 
     private bool enabled = true;
-    private float multiplier = 25f;
+    private float multiplier = 35f;
     private float sensitivityStep = 1f;
 
     //private ProtocolEnum protocolSelection = ProtocolEnum.FreeTrack;

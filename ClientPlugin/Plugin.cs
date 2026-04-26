@@ -10,7 +10,7 @@ namespace ClientPlugin;
 
 public class Plugin : IPlugin
 {
-    public const string Name = "Se2HeadTracking";
+    public const string Name = "HeadTrackingSE2";
     public static Plugin Instance;
 
     // The data directory will be provided by a proper SDK in the future.

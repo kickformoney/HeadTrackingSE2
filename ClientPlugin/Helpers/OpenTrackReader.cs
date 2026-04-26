@@ -1,5 +1,4 @@
 using Keen.VRage.Library.Diagnostics;
-using System;
 using System.IO.MemoryMappedFiles;
 using System.Runtime.InteropServices;
 
@@ -14,18 +13,19 @@ public static class OpenTrackReader
     #region Fields
 
     // Standard FreeTrack/OpenTrack shared memory map name
-    //private const string MapName = "FTNoIR_Mem_Map";
-    private const string MapName = "FT_SharedMem";
+    //private const string mapName = "FTNoIR_Mem_Map";
+    private const string mapName = "FT_SharedMem";
 
     private static MemoryMappedViewAccessor? _accessor;
-    private static bool _loggedError = false;
     private static MemoryMappedFile? _mmf;
+    private static bool loggedError = false;
+    private static bool loggedStartup = false;
 
     #endregion Fields
 
     #region Properties
 
-    private static float Multiplier => Config.Current.Multiplier;
+    private static float multiplier => Config.Current.Multiplier;
     private static bool trackingEnabled => Config.Current.Enabled;
 
     #endregion Properties
@@ -44,23 +44,30 @@ public static class OpenTrackReader
         {
             try
             {
-                _mmf ??= MemoryMappedFile.OpenExisting(MapName);
+                _mmf ??= MemoryMappedFile.OpenExisting(mapName);
+
+                if (!loggedStartup)
+                {
+                    Log.Default.WriteLine($"[{Plugin.Name}] Found shared memory map: '{mapName}'");
+                    loggedStartup = true;
+                }
+
                 _accessor ??= _mmf.CreateViewAccessor(0, Marshal.SizeOf<FTSharedMemData>(), MemoryMappedFileAccess.Read);
 
                 _accessor.Read(0, out FTSharedMemData data);
 
-                yaw = data.Yaw * Multiplier;
-                pitch = data.Pitch * Multiplier;
+                yaw = data.Yaw * multiplier;
+                pitch = data.Pitch * multiplier;
                 return true;
             }
             catch
             {
                 // OpenTrack not running — Log once to avoid filling the log with error messages
-                if (!_loggedError)
+                if (!loggedError)
                 {
-                    Log.Default.WriteLine($"[{Plugin.Name}] OpenTrack shared memory not found. " +
+                    Log.Default.WriteLine($"[{Plugin.Name}] OpenTrack shared memory not found.  " +
                         "Ensure OpenTrack is running with 'FreeTrack 2.0 Enhanced' output selected.");
-                    _loggedError = true;
+                    loggedError = true;
                 }
 
                 try { _accessor?.Dispose(); } catch { }

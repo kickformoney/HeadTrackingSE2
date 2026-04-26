@@ -1,4 +1,3 @@
-using ClientPlugin;
 using ClientPlugin.Settings.Tools;
 using HarmonyLib;
 using Keen.Game2.Client.UI.InGame;
@@ -19,9 +18,9 @@ public static class KeybindPatch
 {
     #region Fields
 
-    private static bool _decreasePressedLast;
-    private static bool _increasePressedLast;
-    private static bool _togglePressedLast;
+    private static bool decreasePressedLast;
+    private static bool increasePressedLast;
+    private static bool togglePressedLast;
 
     #endregion Fields
 
@@ -56,17 +55,17 @@ public static class KeybindPatch
             bool increasePressed = IsPressed(keyboard, Config.Current.IncreaseSensitivity);
             bool decreasePressed = IsPressed(keyboard, Config.Current.DecreaseSensitivity);
 
-            if (togglePressed && !_togglePressedLast)
+            if (togglePressed && !togglePressedLast)
                 Config.Current.Enabled = !Config.Current.Enabled;
-            _togglePressedLast = togglePressed;
+            togglePressedLast = togglePressed;
 
-            if (increasePressed && !_increasePressedLast)
+            if (increasePressed && !increasePressedLast)
                 AdjustTrackingSensitivity(true, Config.Current.SensitivityStep);
-            _increasePressedLast = increasePressed;
+            increasePressedLast = increasePressed;
 
-            if (decreasePressed && !_decreasePressedLast)
+            if (decreasePressed && !decreasePressedLast)
                 AdjustTrackingSensitivity(false, Config.Current.SensitivityStep);
-            _decreasePressedLast = decreasePressed;
+            decreasePressedLast = decreasePressed;
         }
         catch (Exception e)
         {
