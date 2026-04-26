@@ -5,8 +5,8 @@ using System.Runtime.InteropServices;
 namespace ClientPlugin.Helpers;
 
 /// <summary>
-/// Reads head pose data from OpenTrack via the FreeTrack shared memory protocol
-/// OpenTrack must be running and configured to output via "Freetrack 2.0 Enhanced" or "OpenTrack"
+/// Reads head position data from OpenTrack via the FreeTrack shared memory protocol
+/// OpenTrack must be running and configured to output using "Freetrack 2.0 Enhanced" protocol
 /// </summary>
 public static class OpenTrackReader
 {
@@ -62,11 +62,11 @@ public static class OpenTrackReader
             }
             catch
             {
-                // OpenTrack not running — Log once to avoid filling the log with error messages
+                // FreeTrack not running — Log once to avoid filling the log with error messages
                 if (!loggedError)
                 {
-                    Log.Default.WriteLine($"[{Plugin.Name}] OpenTrack shared memory not found.  " +
-                        "Ensure OpenTrack is running with 'FreeTrack 2.0 Enhanced' output selected.");
+                    Log.Default.WriteLine($"[{Plugin.Name}] FreeTrack shared memory not found.  " +
+                        "Ensure OpenTrack/TrackIR is running with 'FreeTrack 2.0 Enhanced' output selected.");
                     loggedError = true;
                 }
 
