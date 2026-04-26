@@ -25,7 +25,7 @@ internal static class RowBuilder
         {
             Text = labelText,
             Foreground = LabelForeground,
-            FontSize = 20,
+            FontSize = 16,
             VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(0, 0, 8, 0),
         };

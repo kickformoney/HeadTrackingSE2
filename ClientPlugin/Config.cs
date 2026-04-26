@@ -24,7 +24,7 @@ public class Config : INotifyPropertyChanged
     public readonly string Title = "Head Tracking Configuration";
 
     private bool enabled = true;
-    private float multiplier = 35f;
+    private float trackingSensitivity = 35f;
     private float sensitivityStep = 1f;
 
     //private ProtocolEnum protocolSelection = ProtocolEnum.FreeTrack;
@@ -59,10 +59,10 @@ public class Config : INotifyPropertyChanged
     //}
 
     [Slider(0f, 100f, 1f, SliderAttribute.SliderType.Integer, description: "Tracking Sensitivity")]
-    public float Multiplier
+    public float TrackingSensitivity
     {
-        get => multiplier;
-        set => SetField(ref multiplier, value);
+        get => trackingSensitivity;
+        set => SetField(ref trackingSensitivity, value);
     }
 
     [Separator("Keybinds")]

@@ -29,9 +29,9 @@ public static class KeybindPatch
     public static void AdjustTrackingSensitivity(bool isIncrease, float incByVal)
     {
         if (isIncrease)
-            Config.Current.Multiplier = Math.Min(Config.Current.Multiplier + incByVal, 100f);
+            Config.Current.TrackingSensitivity = Math.Min(Config.Current.TrackingSensitivity + incByVal, 100f);
         else
-            Config.Current.Multiplier = Math.Max(Config.Current.Multiplier - incByVal, 0f);
+            Config.Current.TrackingSensitivity = Math.Max(Config.Current.TrackingSensitivity - incByVal, 0f);
     }
 
     [HarmonyPostfix]

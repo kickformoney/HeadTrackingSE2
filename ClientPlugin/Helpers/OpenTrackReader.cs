@@ -25,7 +25,7 @@ public static class OpenTrackReader
 
     #region Properties
 
-    private static float multiplier => Config.Current.Multiplier;
+    private static float sensitivity => Config.Current.TrackingSensitivity;
     private static bool trackingEnabled => Config.Current.Enabled;
 
     #endregion Properties
@@ -56,8 +56,8 @@ public static class OpenTrackReader
 
                 _accessor.Read(0, out FTSharedMemData data);
 
-                yaw = data.Yaw * multiplier;
-                pitch = data.Pitch * multiplier;
+                yaw = data.Yaw * sensitivity;
+                pitch = data.Pitch * sensitivity;
                 return true;
             }
             catch

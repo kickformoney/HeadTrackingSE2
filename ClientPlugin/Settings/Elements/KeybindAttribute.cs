@@ -33,6 +33,7 @@ internal class KeybindAttribute : Attribute, IElement
             Padding = new Thickness(12, 4, 12, 4),
             MinWidth = 220,
             Height = SettingsLayout.ControlHeight,
+            FontSize = 18,
         };
 
         button.Click += (_, _) => OpenCompositionDialog(label, getter, setter, button);
