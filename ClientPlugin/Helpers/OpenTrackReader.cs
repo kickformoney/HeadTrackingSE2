@@ -25,8 +25,8 @@ public static class OpenTrackReader
 
     #region Properties
 
-    private static float sensitivity => Config.Current.TrackingSensitivity;
-    private static bool trackingEnabled => Config.Current.Enabled;
+    private static float sensitivity => Config.Current.GlobalTrackingSensitivityMultiplier;
+    private static bool trackingEnabled => Config.Current.EnableTracking;
 
     #endregion Properties
 

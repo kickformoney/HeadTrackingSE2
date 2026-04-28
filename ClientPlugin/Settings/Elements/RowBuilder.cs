@@ -18,7 +18,7 @@ internal static class RowBuilder
             Margin = new Thickness(0, RowMargin, 0, RowMargin + 2),
             MinHeight = SettingsLayout.RowMinHeight,
         };
-        grid.ColumnDefinitions.Add(new ColumnDefinition(SettingsLayout.LabelColumnWidth, GridUnitType.Pixel));
+        grid.ColumnDefinitions.Add(new ColumnDefinition(SettingsLayout.LabelColumnWidth * 1.5, GridUnitType.Pixel));
         grid.ColumnDefinitions.Add(new ColumnDefinition(1, GridUnitType.Star));
 
         var label = new TextBlock

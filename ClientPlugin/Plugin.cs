@@ -4,6 +4,7 @@ using HarmonyLib;
 using Keen.Game2.Game.Plugins;
 using Keen.VRage.Library.Diagnostics;
 using System;
+using System.Linq;
 using System.Reflection;
 
 namespace ClientPlugin;
@@ -24,19 +25,26 @@ public class Plugin : IPlugin
     public Plugin()
     {
         Instance = this;
-
-        // Force-load Config.Current now that DataDir is available
         _ = Config.Current;
 
         Log.Default.WriteLine($"[{Name}] Loaded plugin.");
+
 #if DEBUG
-        Harmony.DEBUG = true;
+    Harmony.DEBUG = true;
 #endif
         var harmony = new Harmony(Name);
-        harmony.PatchAll(Assembly.GetExecutingAssembly());
-        Log.Default.WriteLine($"[{Name}] Applied patches");
 
-        //OpenTrackReader.DiagnoseMapNames();
+        harmony.PatchAll(Assembly.GetExecutingAssembly());
+
+        // Log patched methods for debugging
+        var patchedMethods = harmony.GetPatchedMethods().ToList();
+
+        Log.Default.WriteLine($"[{Plugin.Name}] Patched methods count: {patchedMethods.Count}");
+
+        foreach (var m in patchedMethods)
+        {
+            Log.Default.WriteLine($"[{Plugin.Name}] Patched: {m.DeclaringType?.Name}.{m.Name}");
+        }
     }
 
     // Invoked by Pulsar via reflection when the user clicks the plugin's config button.

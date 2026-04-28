@@ -25,7 +25,7 @@ namespace ClientPlugin.Patches;
 ///   Values are inverted in the engine, so use -yaw and -pitch
 /// </summary>
 [HarmonyPatch(typeof(FirstPersonCameraWithInputComponent), "UpdateRelativeTransform")]
-internal class HeadTrackingPatch
+internal class HeadTrackingCockpitPatch
 {
     #region Fields
 
@@ -42,6 +42,12 @@ internal class HeadTrackingPatch
     private static void Prefix(ref FirstPersonCameraWithInputComponent.RotationData rotationData)
     {
         bool enableLogging = logToFile && (logCounter++ % 180) == 0; // 180 frames - approximately 3 seconds
+
+        if (!Config.Current.CockpitEnabled)
+        {
+            if (enableLogging) Log.Default.WriteLine($"[{Plugin.Name}] Cockpit Rotation Disabled - Skipping additional logging");
+            return;
+        }
 
         if (enableLogging) Log.Default.WriteLine($"[{Plugin.Name}] Patch firing. Current RotationData.Rotation: {rotationData.Rotation}");
 
