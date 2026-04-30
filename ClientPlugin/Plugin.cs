@@ -1,3 +1,4 @@
+using ClientPlugin.Patches;
 using ClientPlugin.Settings;
 using ClientPlugin.Tools;
 using HarmonyLib;
@@ -27,14 +28,16 @@ public class Plugin : IPlugin
         Instance = this;
         _ = Config.Current;
 
-        Log.Default.WriteLine($"[{Name}] Loaded plugin.");
+        Log.Default.WriteLine($"[{Name}] Loaded plugin");
 
 #if DEBUG
-    Harmony.DEBUG = true;
+        Harmony.DEBUG = true;
 #endif
         var harmony = new Harmony(Name);
 
         harmony.PatchAll(Assembly.GetExecutingAssembly());
+        HeadTrackingCockpitPatch.Register(harmony);
+        HeadTrackingShipThirdPersonPatch.Register(harmony);
 
         // Log patched methods for debugging
         var patchedMethods = harmony.GetPatchedMethods().ToList();
@@ -45,6 +48,13 @@ public class Plugin : IPlugin
         {
             Log.Default.WriteLine($"[{Plugin.Name}] Patched: {m.DeclaringType?.Name}.{m.Name}");
         }
+
+        // Log active configuration
+        Log.Default.WriteLine($"[{Name}] Configuration loaded:");
+        Log.Default.WriteLine($"[{Name}]   Cockpit tracking:        {(Config.Current.EnableCockpitTracking ? "Enabled" : "Disabled")} | Sensitivity: {Config.Current.CockpitSensitivity} | Logging: {(Config.Current.CockpitLogging ? "Enabled" : "Disabled")}");
+        Log.Default.WriteLine($"[{Name}]   On-foot tracking:        {(Config.Current.EnableOnFootTracking ? "Enabled" : "Disabled")} | Sensitivity: {Config.Current.OnFootSensitivity}  | Logging: {(Config.Current.OnFootLogging ? "Enabled" : "Disabled")}");
+        Log.Default.WriteLine($"[{Name}]   Third-person tracking:   {(Config.Current.EnableExternalTracking ? "Enabled" : "Disabled")} | Sensitivity: {Config.Current.ThirdPersonSensitivity} | Logging: {(Config.Current.ExternalViewLogging ? "Enabled" : "Disabled")}");
+        Log.Default.WriteLine($"[{Name}]   Global sensitivity step: {Config.Current.GlobalSensitivityStep}");
     }
 
     // Invoked by Pulsar via reflection when the user clicks the plugin's config button.

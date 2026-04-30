@@ -66,7 +66,7 @@ public static class OpenTrackReader
                 if (!loggedError)
                 {
                     Log.Default.WriteLine($"[{Plugin.Name}] FreeTrack shared memory not found.  " +
-                        "Ensure OpenTrack/TrackIR is running with 'FreeTrack 2.0 Enhanced' output selected.");
+                        "Ensure OpenTrack/TrackIR is running with 'FreeTrack 2.0 Enhanced' output selected");
                     loggedError = true;
                 }
 

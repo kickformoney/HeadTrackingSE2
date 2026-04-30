@@ -19,15 +19,10 @@ public class Config : INotifyPropertyChanged
 
     public const float CockpitSensitivityMax = 100f;
     public const float OnFootSensitivityMax = 20f;
-    //public const float ThirdPersonSensitivityMax = 100f;
-
+    public const float ThirdPersonSensitivityMax = 100f;
     public static readonly Config Default = new Config();
     public static Config Current = ConfigStorage.Load();
-    private Binding decreaseSensitivity = new Binding();
     private bool enableTracking = true;
-    private Binding increaseSensitivity = new Binding();
-    private float sensitivityStep = 1f;
-    private Binding toggleKey = new Binding();
 
     //private ProtocolEnum protocolSelection = ProtocolEnum.FreeTrack;
 
@@ -81,7 +76,7 @@ public class Config : INotifyPropertyChanged
 
     [Separator("Cockpit")]
     [Checkbox(description: "Enable Cockpit Head Tracking")]
-    public bool CockpitEnabled { get; set; } = true;
+    public bool EnableCockpitTracking { get; set; } = true;
 
     [Slider(0f, CockpitSensitivityMax, 1f, SliderAttribute.SliderType.Integer, description: "Cockpit Sensitivity - Default: 35")]
     public float CockpitSensitivity { get; set; } = 35f;
@@ -92,8 +87,8 @@ public class Config : INotifyPropertyChanged
     [Keybind(description: "Increase Sensitivity")]
     public Binding CockpitSensitivityIncrease { get; set; } = new Binding();
 
-    [Keybind(description: "Toggle Cockpit Tracking")]
-    public Binding CockpitToggle { get; set; } = new Binding();
+    [Keybind(description: "Toggle Cockpit Head Tracking")]
+    public Binding ToggleCockpit { get; set; } = new Binding();
 
     #endregion Cockpit
 
@@ -101,7 +96,7 @@ public class Config : INotifyPropertyChanged
 
     [Separator("On Foot")]
     [Checkbox(description: "Enable On-Foot Head Tracking")]
-    public bool OnFootEnabled { get; set; } = true;
+    public bool EnableOnFootTracking { get; set; } = true;
 
     [Slider(0f, OnFootSensitivityMax, 0.25f, SliderAttribute.SliderType.Integer, description: "On-Foot Sensitivity - Default: 10")]
     public float OnFootSensitivity { get; set; } = 10f;
@@ -112,30 +107,50 @@ public class Config : INotifyPropertyChanged
     [Keybind(description: "Increase Sensitivity")]
     public Binding OnFootSensitivityIncrease { get; set; } = new Binding();
 
-    [Keybind(description: "Toggle On-Foot Tracking")]
-    public Binding OnFootToggle { get; set; } = new Binding();
+    [Keybind(description: "Toggle On-Foot Head Tracking")]
+    public Binding ToggleOnFoot { get; set; } = new Binding();
 
     #endregion On Foot - First Person
 
-    #region On Foot - Third Person
+    #region Ship - External Camera
 
-    //[Separator("Third Person On-Foot")]
-    //[Checkbox(description: "Enable Third Person Head Tracking")]
-    //public bool ThirdPersonEnabled { get; set; } = true;
+    [Separator("Ship External Camera (overrides Alt+mouse look when enabled)")]
+    [Checkbox(description: "Enable External Camera Head Tracking")]
+    public bool EnableExternalTracking { get; set; } = true;
 
-    //[Slider(0f, 1f, 0.025f, SliderAttribute.SliderType.Integer, description: "Third Person Sensitivity")]
-    //public float ThirdPersonSensitivity { get; set; } = 0.35f;
+    [Slider(0f, ThirdPersonSensitivityMax, 1f, SliderAttribute.SliderType.Integer, description: "External View Sensitivity")]
+    public float ThirdPersonSensitivity { get; set; } = 35f;
 
-    //[Keybind(description: "Toggle Third Person Tracking")]
-    //public Binding ThirdPersonToggle { get; set; } = new Binding();
+    [Keybind(description: "Decrease Sensitivity")]
+    public Binding ThirdPersonSensitivityDecrease { get; set; } = new Binding();
 
-    //[Keybind(description: "Increase Sensitivity")]
-    //public Binding ThirdPersonSensitivityIncrease { get; set; } = new Binding();
+    [Keybind(description: "Increase Sensitivity")]
+    public Binding ThirdPersonSensitivityIncrease { get; set; } = new Binding();
 
-    //[Keybind(description: "Decrease Sensitivity")]
-    //public Binding ThirdPersonSensitivityDecrease { get; set; } = new Binding();
+    [Checkbox(description: "Invert Pitch (Y-axis) in the third person external view")]
+    public bool InvertPitch { get; set; } = false;
 
-    #endregion On Foot - Third Person
+    [Checkbox(description: "Invert Yaw (X-axis) in the third person external view")]
+    public bool InvertYaw { get; set; } = false;
+
+    [Keybind(description: "Toggle External View Head Tracking")]
+    public Binding ToggleExternalCamera { get; set; } = new Binding();
+
+    #endregion Ship - External Camera
+
+    #region Debugging Section
+
+    [Separator("Debugging")]
+    [Checkbox(description: @"Enable if requested - Logs to %AppData%\SpaceEngineers2\Temp\Logs")]
+    public bool OnFootLogging { get; set; } = false;
+
+    [Checkbox(description: @"Enable if requested - logs to %AppData%\SpaceEngineers2\Temp\Logs")]
+    public bool CockpitLogging { get; set; } = false;
+
+    [Checkbox(description: @"Enable if requested - Logs to %AppData%\SpaceEngineers2\Temp\Logs")]
+    public bool ExternalViewLogging { get; set; } = false;
+
+    #endregion Debugging Section
 
     #endregion Properties
 
