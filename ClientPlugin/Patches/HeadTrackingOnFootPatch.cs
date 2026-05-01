@@ -11,12 +11,16 @@ namespace ClientPlugin.Patches
     {
         #region Fields
 
+        private const string patchName = "On-Foot";
+
+        private static bool characterSeatedMessageShown = false;
         private static float lastPitch;
         private static float lastYaw;
         private static int logCounter = 0;
         private static bool loggingDisabledMessageShown = false;
         private static bool logToFile = false;
         private static int noDataLogCounter = 0;
+        private static bool trackingDisabledMessageShown = false;
 
         #endregion Fields
 
@@ -32,43 +36,38 @@ namespace ClientPlugin.Patches
         {
             logToFile = Config.Current.OnFootLogging && (logCounter++ % 180) == 0;
 
-            if (!Config.Current.EnableOnFootTracking)
-            {
-                if (logToFile) Log.Default.WriteLine($"[{Plugin.Name}] On-Foot Tracking Disabled - Skipping additional logging");
-                return;
-            }
-
-            // Show the "Logging disabled" message only once when logging is turned off
-            if (!Config.Current.OnFootLogging)
-            {
-                if (!loggingDisabledMessageShown)
-                {
-                    Log.Default.WriteLine($"[{Plugin.Name}] On-Foot logging disabled - no further log entries will be written for this patch until logging is enabled");
-                    loggingDisabledMessageShown = true;
-                }
-            }
-            else // reset flag if logging is enabled
-            {
-                loggingDisabledMessageShown = false;
-            }
+            if (PatchLogger.IsDisabled(Plugin.Name, patchName, "Tracking", Config.Current.EnableOnFootTracking, ref trackingDisabledMessageShown)) return;
+            PatchLogger.IsDisabled(Plugin.Name, patchName, "Logging", Config.Current.OnFootLogging, ref loggingDisabledMessageShown);
 
             var character = Instance;
 
             if (character == null)
             {
-                if (logToFile) Log.Default.WriteLine($"[{Plugin.Name}] On-Foot: no character instance");
+                if (logToFile) Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] No character instance");
                 return;
             }
 
             // Skip if seated in a cockpit or chair
-            if (character._characterInput._movementComponent.CurrentMovementState == CharacterMovementState.Sitting)
+            bool isSeated = character._characterInput._movementComponent.CurrentMovementState == CharacterMovementState.Sitting;
+
+            if (isSeated)
             {
-                if (logToFile) Log.Default.WriteLine($"[{Plugin.Name}] On-Foot: character is seated, skipping.");
+                if (!characterSeatedMessageShown)
+                {
+                    if (logToFile) Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] Character is seated, skipping.");
+                    characterSeatedMessageShown = true;
+                }
                 return;
             }
 
+            if (characterSeatedMessageShown)
+            {
+                if (logToFile) Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] Character is no longer seated, resuming head tracking.");
+                characterSeatedMessageShown = false;
+            }
+
             var movementState = character._characterInput._movementComponent.CurrentMovementState;
-            if (logToFile) Log.Default.WriteLine($"[{Plugin.Name}] On-Foot: MovementState={movementState}");
+            if (logToFile) Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] MovementState={movementState}");
 
             if (OpenTrackReader.TryGetPose(out float yaw, out float pitch))
             {
@@ -84,10 +83,10 @@ namespace ClientPlugin.Patches
 
                 if (logToFile)
                 {
-                    Log.Default.WriteLine($"[{Plugin.Name}] On-Foot raw:     yaw={yaw:F2} pitch={pitch:F2}");
-                    Log.Default.WriteLine($"[{Plugin.Name}] On-Foot delta:   yawDelta={yawDelta:F4} pitchDelta={pitchDelta:F4}");
-                    Log.Default.WriteLine($"[{Plugin.Name}] On-Foot scaled:  scaledYaw={scaledYaw:F4} scaledPitch={scaledPitch:F4} scale={scale}");
-                    Log.Default.WriteLine($"[{Plugin.Name}] On-Foot mouse before: {character._mouse}");
+                    Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] Raw:     yaw={yaw:F2} pitch={pitch:F2}");
+                    Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] Delta:   yawDelta={yawDelta:F4} pitchDelta={pitchDelta:F4}");
+                    Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] Scaled:  scaledYaw={scaledYaw:F4} scaledPitch={scaledPitch:F4} scale={scale}");
+                    Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] Mouse before: {character._mouse}");
                 }
 
                 character._mouse.X -= scaledYaw;
@@ -95,13 +94,13 @@ namespace ClientPlugin.Patches
                 character.UpdateMovement();
                 character._mouse = Vector2.Zero;
 
-                if (logToFile) Log.Default.WriteLine($"[{Plugin.Name}] On-Foot mouse after reset: {character._mouse}");
+                if (logToFile) Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] Mouse after reset: {character._mouse}");
             }
             else
             {
                 int frames = logToFile ? 180 : 3600;
                 if (noDataLogCounter++ % frames == 0)
-                    Log.Default.WriteLine($"[{Plugin.Name}] On-Foot: no head tracking data");
+                    Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] No head tracking data");
             }
         }
 
@@ -117,7 +116,7 @@ namespace ClientPlugin.Patches
             private static void Postfix(CharacterMovementInputHandlerComponent __instance)
             {
                 Instance = __instance;
-                Log.Default.WriteLine($"[{Plugin.Name}] Cached CharacterMovementInputHandlerComponent");
+                Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] Cached CharacterMovementInputHandlerComponent");
             }
 
             #endregion Methods
@@ -131,7 +130,7 @@ namespace ClientPlugin.Patches
             private static void Postfix()
             {
                 HeadTrackingOnFootPatch.Instance = null;
-                Log.Default.WriteLine($"[{Plugin.Name}] Cleared CharacterMovementInputHandlerComponent");
+                Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] Cleared CharacterMovementInputHandlerComponent");
             }
 
             #endregion Methods

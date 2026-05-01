@@ -49,4 +49,31 @@ internal static class RowBuilder
 
         return grid;
     }
+
+    public static Grid NewRowNoLabel(string description)
+    {
+        var grid = new Grid
+        {
+            Margin = new Thickness(0, RowMargin, 0, RowMargin + 2),
+            MinHeight = SettingsLayout.RowMinHeight,
+        };
+        grid.ColumnDefinitions.Add(new ColumnDefinition(SettingsLayout.LabelColumnWidth * 1.5, GridUnitType.Pixel));
+        grid.ColumnDefinitions.Add(new ColumnDefinition(1, GridUnitType.Star));
+
+        var label = new TextBlock
+        {
+            Text = description,
+            Foreground = LabelForeground,
+            FontSize = 16,
+            VerticalAlignment = VerticalAlignment.Center,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            Margin = new Thickness(0, 0, 8, 0),
+        };
+
+        Grid.SetColumn(label, 0);
+        Grid.SetColumnSpan(label, 2);
+        grid.Children.Add(label);
+
+        return grid;
+    }
 }

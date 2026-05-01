@@ -1,7 +1,6 @@
 using ClientPlugin.Helpers;
 using HarmonyLib;
 using Keen.Game2.Client.GameSystems.CameraSystems.Modes;
-using Keen.Game2.Simulation.WorldObjects.Movement;
 using Keen.VRage.DCS.Components;
 using Keen.VRage.Library.Diagnostics;
 using Keen.VRage.Library.Mathematics;
@@ -33,14 +32,19 @@ internal class HeadTrackingCockpitPatch
 {
     #region Fields
 
-    public static bool logToFile = false;
+    private const string patchName = "Cockpit";
+
     private static int logCounter = 0;
     private static bool loggingDisabledMessageShown = false;
+    private static bool logToFile = false;
     private static int noDataLogCounter = 0;
+    private static bool trackingDisabledMessageShown = false;
 
     #endregion Fields
 
     #region Methods
+
+    internal static Entity? topLevelParent = null;
 
     public static void Register(Harmony harmony)
     {
@@ -56,7 +60,7 @@ internal class HeadTrackingCockpitPatch
                 var prefix = typeof(HeadTrackingCockpitPatch)
                     .GetMethod("Prefix", BindingFlags.Static | BindingFlags.NonPublic);
                 harmony.Patch(targetMethod, prefix: new HarmonyMethod(prefix));
-                Log.Default.WriteLine($"[{Plugin.Name}] UpdateRelativeTransform patched manually.");
+                Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] UpdateRelativeTransform patched manually.");
             }
 
             // Patch OnAddedToScene to cache topLevelParent
@@ -69,7 +73,7 @@ internal class HeadTrackingCockpitPatch
                 var postfix = typeof(CacheCockpitParentPatch)
                     .GetMethod("Postfix", BindingFlags.Static | BindingFlags.NonPublic);
                 harmony.Patch(onAdded, postfix: new HarmonyMethod(postfix));
-                Log.Default.WriteLine($"[{Plugin.Name}] OnAddedToScene patched manually.");
+                Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] OnAddedToScene patched manually.");
             }
 
             // Patch OnBeforeRemovedFromScene to clear topLevelParent
@@ -82,80 +86,69 @@ internal class HeadTrackingCockpitPatch
                 var postfix = typeof(ClearCockpitParentPatch)
                     .GetMethod("Postfix", BindingFlags.Static | BindingFlags.NonPublic);
                 harmony.Patch(onRemoved, postfix: new HarmonyMethod(postfix));
-                Log.Default.WriteLine($"[{Plugin.Name}] OnBeforeRemovedFromScene patched manually.");
+                Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] OnBeforeRemovedFromScene patched manually.");
             }
         }
         catch (Exception e)
         {
-            Log.Default.WriteLine($"[{Plugin.Name}] Failed to patch HeadTrackingCockpitPatch: {e}");
-        }
-    }
-
-    internal static Entity? topLevelParent = null;
-
-    [HarmonyPatch(typeof(FirstPersonCameraWithInputComponent), "OnAddedToScene")]
-    internal class CacheCockpitParentPatch
-    {
-        private static void Postfix(FirstPersonCameraWithInputComponent __instance)
-        {
-            HeadTrackingCockpitPatch.topLevelParent = __instance._topLevelParent;
-            Log.Default.WriteLine($"[{Plugin.Name}] Cached cockpit top level parent.");
-        }
-    }
-
-    [HarmonyPatch(typeof(FirstPersonCameraWithInputComponent), "OnBeforeRemovedFromScene")]
-    internal class ClearCockpitParentPatch
-    {
-        private static void Postfix()
-        {
-            HeadTrackingCockpitPatch.topLevelParent = null;
-            Log.Default.WriteLine($"[{Plugin.Name}] Cleared cockpit top level parent.");
+            Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] Failed to patch HeadTrackingCockpitPatch: {e}");
         }
     }
 
     private static void Prefix(ref FirstPersonCameraWithInputComponent.RotationData rotationData)
     {
-        //Log.Default.WriteLine($"[{Plugin.Name}] Cockpit Prefix fired. logCounter={logCounter} CockpitLogging={Config.Current.CockpitLogging} LogToFile={LogToFile}");
+        //Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] Cockpit Prefix fired. logCounter={logCounter} CockpitLogging={Config.Current.CockpitLogging} LogToFile={LogToFile}");
 
         logToFile = Config.Current.CockpitLogging && (logCounter++ % 180) == 0; // 180 frames - approximately 3 seconds
 
-        if (!Config.Current.EnableCockpitTracking)
-        {
-            if (logToFile) Log.Default.WriteLine($"[{Plugin.Name}] Cockpit Tracking Disabled - Skipping additional logging");
-            return;
-        }
+        if (PatchLogger.IsDisabled(Plugin.Name, patchName, "Tracking", Config.Current.EnableCockpitTracking, ref trackingDisabledMessageShown)) return;
+        PatchLogger.IsDisabled(Plugin.Name, patchName, "Logging", Config.Current.CockpitLogging, ref loggingDisabledMessageShown);
 
-        // Show the "Logging disabled" message only once when logging is turned off
-        if (!Config.Current.CockpitLogging)
-        {
-            if (!loggingDisabledMessageShown)
-            {
-                Log.Default.WriteLine($"[{Plugin.Name}] Cockpit logging disabled - no further log entries will be written for this patch until logging is enabled");
-                loggingDisabledMessageShown = true;
-            }
-        }
-        else // reset flag if logging is enabled
-        {
-            loggingDisabledMessageShown = false;
-        }
-
-        if (logToFile) Log.Default.WriteLine($"[{Plugin.Name}] Patch firing. Current RotationData.Rotation: {rotationData.Rotation}");
+        if (logToFile) Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] Patch firing. Current RotationData.Rotation: {rotationData.Rotation}");
         if (!OpenTrackReader.TryGetPose(out float yaw, out float pitch))
         {
             int frames = logToFile ? 180 : 3600;
 
             if (noDataLogCounter++ % frames == 0) // 3600 frames - approximately once per minute
             {
-                Log.Default.WriteLine($"[{Plugin.Name}] OpenTrack: no data");
+                Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] FreeTrack: no data");
             }
             return;
         }
 
-        if (logToFile) Log.Default.WriteLine($"[{Plugin.Name}] OpenTrack raw: yaw={yaw:F2}, pitch={pitch:F2}");
+        if (logToFile) Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] FreeTrack raw: yaw={yaw:F2}, pitch={pitch:F2}");
 
         rotationData.Rotation = new Vector3(-yaw, -pitch, 0f);
 
-        if (logToFile) Log.Default.WriteLine($"[{Plugin.Name}] Written rotation: {rotationData.Rotation}");
+        if (logToFile) Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] Written rotation: {rotationData.Rotation}");
+    }
+
+    [HarmonyPatch(typeof(FirstPersonCameraWithInputComponent), "OnAddedToScene")]
+    internal class CacheCockpitParentPatch
+    {
+        #region Methods
+
+        private static void Postfix(FirstPersonCameraWithInputComponent __instance)
+        {
+            HeadTrackingCockpitPatch.topLevelParent = __instance._topLevelParent;
+            Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] Cached cockpit top level parent.");
+        }
+
+        #endregion Methods
+    }
+
+    [HarmonyPatch(typeof(FirstPersonCameraWithInputComponent), "OnBeforeRemovedFromScene")]
+    internal class ClearCockpitParentPatch
+    {
+        #region Methods
+
+        private static void Postfix()
+        {
+            HeadTrackingCockpitPatch.topLevelParent = null;
+            Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] Cleared cockpit top level parent.");
+        }
+
+        #endregion Methods
     }
 
     #endregion Methods

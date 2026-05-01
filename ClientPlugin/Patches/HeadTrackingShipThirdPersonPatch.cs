@@ -16,11 +16,14 @@ namespace ClientPlugin.Patches
     {
         #region Fields
 
-        public static bool logToFile = false;
+        private const string patchName = "Ship External";
+
         private static ThirdPersonCameraComponent instance = new();
         private static int logCounter = 0;
         private static bool loggingDisabledMessageShown = false;
+        private static bool logToFile = false;
         private static int noDataLogCounter = 0;
+        private static bool trackingDisabledMessageShown = false;
 
         #endregion Fields
 
@@ -40,11 +43,11 @@ namespace ClientPlugin.Patches
                     var onAddedToScenePrefix = typeof(HeadTrackingShipThirdPersonPatch)
                         .GetMethod("OnAddedToScenePrefix", BindingFlags.Static | BindingFlags.NonPublic);
                     harmony.Patch(onAddedToScene, prefix: new HarmonyMethod(onAddedToScenePrefix));
-                    Log.Default.WriteLine($"[{Plugin.Name}] ThirdPersonCameraComponent.OnAddedToScene patched manually.");
+                    Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] ThirdPersonCameraComponent.OnAddedToScene patched manually.");
                 }
                 else
                 {
-                    Log.Default.WriteLine($"[{Plugin.Name}] ThirdPersonCameraComponent.OnAddedToScene not found.");
+                    Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] ThirdPersonCameraComponent.OnAddedToScene not found.");
                 }
 
                 var onRemovedFromScene = typeof(ThirdPersonCameraComponent)
@@ -56,11 +59,11 @@ namespace ClientPlugin.Patches
                     var onRemovedPostfix = typeof(HeadTrackingShipThirdPersonPatch)
                         .GetMethod("OnBeforeRemovedFromScenePostfix", BindingFlags.Static | BindingFlags.NonPublic);
                     harmony.Patch(onRemovedFromScene, postfix: new HarmonyMethod(onRemovedPostfix));
-                    Log.Default.WriteLine($"[{Plugin.Name}] ThirdPersonCameraComponent.OnBeforeRemovedFromScene patched manually.");
+                    Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] ThirdPersonCameraComponent.OnBeforeRemovedFromScene patched manually.");
                 }
                 else
                 {
-                    Log.Default.WriteLine($"[{Plugin.Name}] ThirdPersonCameraComponent.OnBeforeRemovedFromScenePostfix not found.");
+                    Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] ThirdPersonCameraComponent.OnBeforeRemovedFromScenePostfix not found.");
                 }
 
                 // Patch UpdateRelativeTransform — target the 3-parameter overload with optional distanceOverride
@@ -82,16 +85,16 @@ namespace ClientPlugin.Patches
                         prefix: prefix != null ? new HarmonyMethod(prefix) : null,
                         postfix: postfix != null ? new HarmonyMethod(postfix) : null);
 
-                    Log.Default.WriteLine($"[{Plugin.Name}] ThirdPersonCameraComponent.UpdateRelativeTransform patched manually. Prefix={prefix != null} Postfix={postfix != null}");
+                    Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] ThirdPersonCameraComponent.UpdateRelativeTransform patched manually. Prefix={prefix != null} Postfix={postfix != null}");
                 }
                 else
                 {
-                    Log.Default.WriteLine($"[{Plugin.Name}] ThirdPersonCameraComponent.UpdateRelativeTransform not found.");
+                    Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] ThirdPersonCameraComponent.UpdateRelativeTransform not found.");
                 }
             }
             catch (Exception e)
             {
-                Log.Default.WriteLine($"[{Plugin.Name}] Failed to patch HeadTrackingShipThirdPersonPatch: {e}");
+                Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] Failed to patch HeadTrackingShipThirdPersonPatch: {e}");
             }
         }
 
@@ -103,26 +106,54 @@ namespace ClientPlugin.Patches
             if (!__instance._topLevelParent.Data.Has<LookOffsetData>())
             {
                 __instance._topLevelParent.Data.Set(new LookOffsetData());
-                Log.Default.WriteLine($"[{Plugin.Name}] Third Person: added LookOffsetData before OnAddedToScene.");
+                Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] Added LookOffsetData before OnAddedToScene.");
             }
+        }
+
+        private static void OnBeforeRemovedFromScenePostfix()
+        {
+            instance = null;
+            Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] Cleared instance.");
         }
 
         private static void Prefix(ThirdPersonCameraComponent __instance, ref ThirdPersonCameraData cameraData)
         {
-            logToFile = Config.Current.OnFootLogging && (logCounter++ % 180) == 0;
+            logToFile = Config.Current.ExternalViewLogging && (logCounter++ % 180) == 0;
 
-            // Guard against calls during initialization before the component is fully set up
-            if (instance == null || instance._topLevelParent == null) return;
+            if (PatchLogger.IsDisabled(Plugin.Name, patchName, "Tracking", Config.Current.EnableExternalTracking, ref trackingDisabledMessageShown)) return;
+            PatchLogger.IsDisabled(Plugin.Name, patchName, "Logging", Config.Current.ExternalViewLogging, ref loggingDisabledMessageShown);
 
-            if (cameraData.InFirstPerson) return;
-            if (!Config.Current.EnableExternalTracking) return;
-            if (!OpenTrackReader.TryGetPose(out float yaw, out float pitch)) return;
+            if (instance == null || instance._topLevelParent == null)
+            {
+                if (logToFile) Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] Instance not ready - skipping.");
+                return;
+            }
 
-            // Pre-set LookOffsetData with our values so UpdateLookOffsetRotation reads them
+            if (cameraData.InFirstPerson)
+            {
+                if (logToFile) Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] In first person mode - skipping.");
+                return;
+            }
+
+            if (!Config.Current.EnableExternalTracking)
+            {
+                if (logToFile) Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] Tracking disabled - skipping.");
+                return;
+            }
+
+            if (!OpenTrackReader.TryGetPose(out float yaw, out float pitch))
+            {
+                if (noDataLogCounter++ % 18000 == 0)
+                    Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] No OpenTrack data.");
+                return;
+            }
+
+            if (logToFile) Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] Patch firing. Current LookOffset before: Yaw={(instance._topLevelParent.Data.TryGet<LookOffsetData>(out var before) ? before.YawOffset : 0):F4)} Pitch={before.PitchOffset:F4}");
+            if (logToFile) Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] OpenTrack raw: yaw={yaw:F2} pitch={pitch:F2}");
+
+            // Inject into LookOffsetData so UpdateLookOffsetRotation will apply it to the camera
             var data = instance._topLevelParent.Data;
-            if (!data.TryGet<LookOffsetData>(out _))
-                data.Set(new LookOffsetData());
-
+            if (!data.TryGet<LookOffsetData>(out _)) data.Set(new LookOffsetData());
             ref LookOffsetData lookOffset = ref data.GetWritePtr<LookOffsetData>();
 
             yaw = Config.Current.InvertYaw ? -yaw : yaw;
@@ -130,12 +161,8 @@ namespace ClientPlugin.Patches
 
             lookOffset.YawOffset = MathHelper.ToRadians(yaw);
             lookOffset.PitchOffset = MathHelper.ToRadians(pitch);
-        }
 
-        private static void OnBeforeRemovedFromScenePostfix()
-        {
-            instance = null;
-            Log.Default.WriteLine($"[{Plugin.Name}] Third Person: cleared instance.");
+            if (logToFile) Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] Written: Yaw={lookOffset.YawOffset:F4} Pitch={lookOffset.PitchOffset:F4}");
         }
 
         #endregion Methods

@@ -24,7 +24,7 @@ public static class Tools
             Text = text,
             TextWrapping = TextWrapping.Wrap,
             MaxWidth = 500,
-            FontSize = 20,
+            FontSize = 18,
         });
     }
 

@@ -7,12 +7,6 @@ using System.Xml.Serialization;
 
 namespace ClientPlugin;
 
-//public enum ProtocolEnum
-//{
-//    FaceTrackNoIR,
-//    FreeTrack,
-//}
-
 public class Config : INotifyPropertyChanged
 {
     #region Fields
@@ -23,8 +17,6 @@ public class Config : INotifyPropertyChanged
     public static readonly Config Default = new Config();
     public static Config Current = ConfigStorage.Load();
     private bool enableTracking = true;
-
-    //private ProtocolEnum protocolSelection = ProtocolEnum.FreeTrack;
 
     #endregion Fields
 
@@ -59,13 +51,6 @@ public class Config : INotifyPropertyChanged
     [Keybind(description: "Toggle Tracking")]
     public Binding GlobalToggleTracking { get; set; } = new Binding();
 
-    //[Dropdown(description: "Tracking Protocol")]
-    //public ProtocolEnum ProtocolSelection
-    //{
-    //    get => protocolSelection;
-    //    set => SetField(ref protocolSelection, value);
-    //}
-
     [Slider(0f, 100f, 1f, SliderAttribute.SliderType.Integer, description: "Global Sensitivity Multiplier - Default: 35")]
     public float GlobalTrackingSensitivityMultiplier { get; set; } = 35f;
 
@@ -96,7 +81,7 @@ public class Config : INotifyPropertyChanged
 
     [Separator("On Foot")]
     [Checkbox(description: "Enable On-Foot Head Tracking")]
-    public bool EnableOnFootTracking { get; set; } = true;
+    public bool EnableOnFootTracking { get; set; } = false;
 
     [Slider(0f, OnFootSensitivityMax, 0.25f, SliderAttribute.SliderType.Integer, description: "On-Foot Sensitivity - Default: 10")]
     public float OnFootSensitivity { get; set; } = 10f;
@@ -114,12 +99,15 @@ public class Config : INotifyPropertyChanged
 
     #region Ship - External Camera
 
-    [Separator("Ship External Camera (overrides Alt+mouse look when enabled)")]
-    [Checkbox(description: "Enable External Camera Head Tracking")]
-    public bool EnableExternalTracking { get; set; } = true;
+    [Separator("Ship External Camera*")]
+    [TextBlock(description: "*Note: Alt+mouse camera movement disabled while active")]
+    public string TrackingNote { get; set; }
 
-    [Slider(0f, ThirdPersonSensitivityMax, 1f, SliderAttribute.SliderType.Integer, description: "External View Sensitivity")]
-    public float ThirdPersonSensitivity { get; set; } = 35f;
+    [Checkbox(description: "Enable External Camera Head Tracking")]
+    public bool EnableExternalTracking { get; set; } = false;
+
+    [Slider(0f, ThirdPersonSensitivityMax, 1f, SliderAttribute.SliderType.Integer, description: "External View Sensitivity - Default: 50")]
+    public float ThirdPersonSensitivity { get; set; } = 50f;
 
     [Keybind(description: "Decrease Sensitivity")]
     public Binding ThirdPersonSensitivityDecrease { get; set; } = new Binding();

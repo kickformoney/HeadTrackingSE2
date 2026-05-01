@@ -42,11 +42,13 @@
       <PublicizerClearCacheOnClean>true</PublicizerClearCacheOnClean>
       <PublicizerRuntimeStrategies>Unsafe;IgnoresAccessChecksTo</PublicizerRuntimeStrategies>
       <PublicizerLogFilePath>$(MSBuildProjectDirectory)\$(OutputPath)Krafs.Publicizer.log</PublicizerLogFilePath>
+      <AssemblyVersion>1.0.0.0</AssemblyVersion>
+      <FileVersion>1.1.0.0</FileVersion>
     </PropertyGroup>
     
     <ItemGroup>
-      <Publicize Include="Game2.Game"/>
-      <Publicize Include="Game2.Client"/>
+      <Publicize Include="Game2.Game" />
+      <Publicize Include="Game2.Client" />
     </ItemGroup>
     
     <ItemGroup>
@@ -121,5 +123,9 @@
       <Reference Include="VRage.Water.Client"><HintPath>$(Game2)\VRage.Water.Client.dll</HintPath><Private>false</Private></Reference>
       <Reference Include="VRage.Water"><HintPath>$(Game2)\VRage.Water.dll</HintPath><Private>false</Private></Reference>
     </ItemGroup>
+    
+    <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+      <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(ProjectDir)PostBuildScripts\UpdateVersion.ps1&quot; -TargetPath &quot;$(TargetPath)&quot; -ProjectDir &quot;$(ProjectDir).&quot;" />
+    </Target>
 
 </Project>

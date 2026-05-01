@@ -47,11 +47,14 @@ public static class KeybindPatch
     #region Methods
 
     [HarmonyPostfix]
-    [HarmonyPatch(nameof(Session.Update), typeof(bool))]
+    [HarmonyPatch(typeof(Session), nameof(Session.Update), typeof(bool))]
     public static void UpdatePostfix(Session __instance)
     {
         try
         {
+            // Client session only — filters out the server session
+            if (__instance.TryGet<SessionInGameUISessionComponent>() == null) return;
+
             HeadTrackingOnFootPatch.Update();
 
             // Actively remove LookOffsetData every frame when cockpit camera is active
@@ -61,8 +64,7 @@ public static class KeybindPatch
                 HeadTrackingCockpitPatch.topLevelParent.Data.TryRemove<LookOffsetData>();
             }
 
-            if (__instance.TryGet<SessionInGameUISessionComponent>() == null)
-                return;
+            if (__instance.TryGet<SessionInGameUISessionComponent>() == null) return;
 
             var keyboard = __instance.TryGet<IInputManager>()?.Keyboard;
             if (keyboard == null) return;
@@ -117,22 +119,10 @@ public static class KeybindPatch
             if (KeyPressed(keyboard, Config.Current.ThirdPersonSensitivityIncrease, ref thirdPersonIncreaseLast))
                 Config.Current.ThirdPersonSensitivity = AdjustSensitivity(Config.Current.ThirdPersonSensitivity, OperationEnum.Increase, Config.Current.GlobalSensitivityStep, Config.ThirdPersonSensitivityMax);
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            Log.Default.WriteLine($"[{Plugin.Name}] KeybindPatch failed: {e}");
+            Log.Default.WriteLine($"[{Plugin.Name}] KeybindPatch failed: {ex}");
         }
-    }
-
-    /// <summary>
-    /// Returns true only on the first frame a key binding is pressed, not while held
-    /// Updates the last pressed state - if just pressed this frame, returns true
-    /// </summary>
-    private static bool KeyPressed(IInputDevice keyboard, Binding binding, ref bool last)
-    {
-        bool pressed = IsPressed(keyboard, binding);
-        bool justPressed = pressed && !last;
-        last = pressed;
-        return justPressed;
     }
 
     private static float AdjustSensitivity(float sensitivity, OperationEnum operation, float step, float max = 100f)
@@ -147,6 +137,18 @@ public static class KeybindPatch
             KeyboardInputs.Control.IsActive(keyboard) == binding.Ctrl &&
             KeyboardInputs.Alt.IsActive(keyboard) == binding.Alt &&
             KeyboardInputs.Shift.IsActive(keyboard) == binding.Shift;
+    }
+
+    /// <summary>
+    /// Returns true only on the first frame a key binding is pressed, not while held
+    /// Updates the last pressed state - if just pressed this frame, returns true
+    /// </summary>
+    private static bool KeyPressed(IInputDevice keyboard, Binding binding, ref bool last)
+    {
+        bool pressed = IsPressed(keyboard, binding);
+        bool justPressed = pressed && !last;
+        last = pressed;
+        return justPressed;
     }
 
     #endregion Methods
