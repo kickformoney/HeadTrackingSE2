@@ -4,6 +4,7 @@ using Keen.Game2.Client.WorldObjects.Character;
 using Keen.Game2.Simulation.WorldObjects.Characters;
 using Keen.VRage.Library.Diagnostics;
 using Keen.VRage.Library.Mathematics;
+using System;
 
 namespace ClientPlugin.Patches
 {
@@ -54,7 +55,7 @@ namespace ClientPlugin.Patches
             {
                 if (!characterSeatedMessageShown)
                 {
-                    if (logToFile) Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] Character is seated, skipping.");
+                    if (logToFile) Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] Character is seated, skipping");
                     characterSeatedMessageShown = true;
                 }
                 return;
@@ -62,7 +63,7 @@ namespace ClientPlugin.Patches
 
             if (characterSeatedMessageShown)
             {
-                if (logToFile) Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] Character is no longer seated, resuming head tracking.");
+                if (logToFile) Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] Character is no longer seated, resuming head tracking");
                 characterSeatedMessageShown = false;
             }
 
@@ -73,6 +74,9 @@ namespace ClientPlugin.Patches
             {
                 float yawDelta = yaw - lastYaw;
                 float pitchDelta = pitch - lastPitch;
+
+                yawDelta = Math.Clamp(yawDelta, -10f, 10f);
+                pitchDelta = Math.Clamp(pitchDelta, -10f, 10f);
                 lastYaw = yaw;
                 lastPitch = pitch;
 
@@ -81,13 +85,7 @@ namespace ClientPlugin.Patches
                 float scaledYaw = yawDelta * scale;
                 float scaledPitch = pitchDelta * scale;
 
-                if (logToFile)
-                {
-                    Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] Raw:     yaw={yaw:F2} pitch={pitch:F2}");
-                    Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] Delta:   yawDelta={yawDelta:F4} pitchDelta={pitchDelta:F4}");
-                    Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] Scaled:  scaledYaw={scaledYaw:F4} scaledPitch={scaledPitch:F4} scale={scale}");
-                    Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] Mouse before: {character._mouse}");
-                }
+                if (logToFile) Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] yaw={yaw} | pitch={pitch} | yawDelta={yawDelta} | pitchDelta={pitchDelta} | mouse before reset: {character._mouse}");
 
                 character._mouse.X -= scaledYaw;
                 character._mouse.Y += scaledPitch;
@@ -100,7 +98,9 @@ namespace ClientPlugin.Patches
             {
                 int frames = logToFile ? 180 : 3600;
                 if (noDataLogCounter++ % frames == 0)
+                {
                     Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] No head tracking data");
+                }
             }
         }
 

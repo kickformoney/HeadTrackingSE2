@@ -18,7 +18,7 @@ namespace ClientPlugin.Patches
 
         private const string patchName = "Ship External";
 
-        private static ThirdPersonCameraComponent instance = new();
+        private static ThirdPersonCameraComponent? instance;
         private static int logCounter = 0;
         private static bool loggingDisabledMessageShown = false;
         private static bool logToFile = false;
@@ -43,11 +43,11 @@ namespace ClientPlugin.Patches
                     var onAddedToScenePrefix = typeof(HeadTrackingShipThirdPersonPatch)
                         .GetMethod("OnAddedToScenePrefix", BindingFlags.Static | BindingFlags.NonPublic);
                     harmony.Patch(onAddedToScene, prefix: new HarmonyMethod(onAddedToScenePrefix));
-                    Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] ThirdPersonCameraComponent.OnAddedToScene patched manually.");
+                    Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] ThirdPersonCameraComponent.OnAddedToScene patched manually");
                 }
                 else
                 {
-                    Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] ThirdPersonCameraComponent.OnAddedToScene not found.");
+                    Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] ThirdPersonCameraComponent.OnAddedToScene not found");
                 }
 
                 var onRemovedFromScene = typeof(ThirdPersonCameraComponent)
@@ -59,11 +59,11 @@ namespace ClientPlugin.Patches
                     var onRemovedPostfix = typeof(HeadTrackingShipThirdPersonPatch)
                         .GetMethod("OnBeforeRemovedFromScenePostfix", BindingFlags.Static | BindingFlags.NonPublic);
                     harmony.Patch(onRemovedFromScene, postfix: new HarmonyMethod(onRemovedPostfix));
-                    Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] ThirdPersonCameraComponent.OnBeforeRemovedFromScene patched manually.");
+                    Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] ThirdPersonCameraComponent.OnBeforeRemovedFromScene patched manually");
                 }
                 else
                 {
-                    Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] ThirdPersonCameraComponent.OnBeforeRemovedFromScenePostfix not found.");
+                    Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] ThirdPersonCameraComponent.OnBeforeRemovedFromScenePostfix not found");
                 }
 
                 // Patch UpdateRelativeTransform — target the 3-parameter overload with optional distanceOverride
@@ -89,7 +89,7 @@ namespace ClientPlugin.Patches
                 }
                 else
                 {
-                    Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] ThirdPersonCameraComponent.UpdateRelativeTransform not found.");
+                    Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] ThirdPersonCameraComponent.UpdateRelativeTransform not found");
                 }
             }
             catch (Exception e)
@@ -100,20 +100,27 @@ namespace ClientPlugin.Patches
 
         private static void OnAddedToScenePrefix(ThirdPersonCameraComponent __instance)
         {
-            // use a private instance field to store the reference to avoid issues when calling it up in Prefix
+            // using a private instance field to store the reference, to avoid issues when calling it up in Prefix
             instance = __instance;
 
             if (!__instance._topLevelParent.Data.Has<LookOffsetData>())
             {
-                __instance._topLevelParent.Data.Set(new LookOffsetData());
-                Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] Added LookOffsetData before OnAddedToScene.");
+                __instance._topLevelParent.Data.Set(new LookOffsetData
+                {
+                    PitchOffset = 0f,
+                    YawOffset = 0f,
+                    MinPitchLookAngle = MathHelper.ToRadians(-90f),
+                    MaxPitchLookAngle = MathHelper.ToRadians(90f)
+                });
+
+                Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] Added LookOffsetData before OnAddedToScene");
             }
         }
 
         private static void OnBeforeRemovedFromScenePostfix()
         {
             instance = null;
-            Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] Cleared instance.");
+            Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] Cleared instance");
         }
 
         private static void Prefix(ThirdPersonCameraComponent __instance, ref ThirdPersonCameraData cameraData)
@@ -125,26 +132,25 @@ namespace ClientPlugin.Patches
 
             if (instance == null || instance._topLevelParent == null)
             {
-                if (logToFile) Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] Instance not ready - skipping.");
+                if (logToFile) Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] Instance not ready - skipping");
                 return;
             }
 
             if (cameraData.InFirstPerson)
             {
-                if (logToFile) Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] In first person mode - skipping.");
+                if (logToFile) Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] In first person mode - skipping");
                 return;
             }
 
             if (!Config.Current.EnableExternalTracking)
             {
-                if (logToFile) Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] Tracking disabled - skipping.");
+                if (logToFile) Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] Tracking disabled - skipping");
                 return;
             }
 
             if (!OpenTrackReader.TryGetPose(out float yaw, out float pitch))
             {
-                if (noDataLogCounter++ % 18000 == 0)
-                    Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] No OpenTrack data.");
+                if (noDataLogCounter++ % 18000 == 0) Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] No OpenTrack data.");
                 return;
             }
 
@@ -153,7 +159,13 @@ namespace ClientPlugin.Patches
 
             // Inject into LookOffsetData so UpdateLookOffsetRotation will apply it to the camera
             var data = instance._topLevelParent.Data;
-            if (!data.TryGet<LookOffsetData>(out _)) data.Set(new LookOffsetData());
+
+            if (!data.TryGet<LookOffsetData>(out _))
+            {
+                if (logToFile) Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] LookOffsetData missing");
+                return;
+            }
+
             ref LookOffsetData lookOffset = ref data.GetWritePtr<LookOffsetData>();
 
             yaw = Config.Current.InvertYaw ? -yaw : yaw;
@@ -161,6 +173,15 @@ namespace ClientPlugin.Patches
 
             lookOffset.YawOffset = MathHelper.ToRadians(yaw);
             lookOffset.PitchOffset = MathHelper.ToRadians(pitch);
+
+            float yawRadians = MathHelper.ToRadians(yaw);
+            float pitchRadians = MathHelper.ToRadians(pitch);
+
+            if (!float.IsFinite(yawRadians) || !float.IsFinite(pitchRadians))
+            {
+                Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] Invalid radians");
+                return;
+            }
 
             if (logToFile) Log.Default.WriteLine($"[{Plugin.Name}] [{patchName}] Written: Yaw={lookOffset.YawOffset:F4} Pitch={lookOffset.PitchOffset:F4}");
         }
