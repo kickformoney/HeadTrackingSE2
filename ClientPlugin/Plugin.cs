@@ -2,7 +2,7 @@ using ClientPlugin.Patches;
 using ClientPlugin.Settings;
 using ClientPlugin.Tools;
 using HarmonyLib;
-using Keen.Game2.Game.Plugins;
+using Keen.VRage.Core.Plugins;
 using Keen.VRage.Library.Diagnostics;
 using System;
 using System.Linq;

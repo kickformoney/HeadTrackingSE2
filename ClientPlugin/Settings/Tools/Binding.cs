@@ -1,7 +1,8 @@
-using System.Collections.Generic;
-using System.Xml.Serialization;
 using Keen.VRage.Core.Input;
 using Keen.VRage.Input;
+using Keen.VRage.Library.Localization;
+using System.Collections.Generic;
+using System.Xml.Serialization;
 
 namespace ClientPlugin.Settings.Tools;
 
@@ -13,6 +14,7 @@ public struct Binding
     // Windows VK code of the main key. Matches InputId.Index for keyboard inputs
     // (KeyboardInputs uses VK codes directly). 0 means unbound.
     public int Vk;
+
     public bool Ctrl;
     public bool Alt;
     public bool Shift;
@@ -30,10 +32,9 @@ public struct Binding
 
     public override string ToString()
     {
-        if (!IsBound)
-            return "None";
+        if (!IsBound) return "None";
 
-        var toInputControl = ToInputControl(new InputActionDefinition("binding", InputType.Digital));
+        var toInputControl = ToInputControl(new InputActionDefinition(LocKey.FromString("binding"), InputType.Digital));
         return toInputControl?.GuiString ?? $"VK {Vk}";
     }
 
@@ -41,8 +42,7 @@ public struct Binding
     // the composer cannot form a valid control for the given action.
     public InputControl ToInputControl(InputActionDefinition action)
     {
-        if (!IsBound)
-            return null;
+        if (!IsBound) return null;
 
         var mainInput = new DigitalInput(Vk, GenericDeviceClass.Keyboard);
         var modifiers = new List<InputId>();
@@ -59,8 +59,8 @@ public struct Binding
     public static Binding FromInputControl(InputControl control)
     {
         var binding = new Binding();
-        if (control == null)
-            return binding;
+
+        if (control == null) return binding;
 
         foreach (var input in control.Inputs)
         {
